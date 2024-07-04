@@ -1,7 +1,12 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
-
+const refreshTokenSchema = new mongoose.Schema({
+  token: { type: String, required: true },
+ 
+  createdAt: { type: Date, default: Date.now },
+  expiresAt: { type: Date, required: true }
+});
 const userSchema =new mongoose.Schema(//database schema of user
   {
     username: {
@@ -42,9 +47,10 @@ const userSchema =new mongoose.Schema(//database schema of user
       type: String,
       required: [true, "password is required"],
     },
-    refreshToken: {
-      type: String,
-    },
+    
+    refreshToken: 
+      [refreshTokenSchema]
+    
   },
   { timestamps: true }
 );
@@ -60,7 +66,7 @@ userSchema.methods.isPasswordCorrect=async function(password){
 userSchema.methods.generateAccessToken=function(){
   return jwt.sign({
     _id: this._id,
-    emial:this.email,
+    email:this.email,
     username:this.username,
     fullname:this.fullname
   },process.env.ACCESS_TOKEN_SECRET,
@@ -72,9 +78,7 @@ userSchema.methods.generateAccessToken=function(){
 userSchema.methods.generateRefreshToken=function(){
   return jwt.sign({
     _id: this._id,
-    emial:this.email,
-    username:this.username,
-    fullname:this.fullname
+
   },process.env.REFRESH_TOKEN_SECRET,
   {
     expiresIn: process.env.REFRESH_TOKEN_EXPIRY
