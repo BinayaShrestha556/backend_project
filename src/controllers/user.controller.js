@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiRes } from "../utils/ApiRes.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 const registerUser = asyncHandler(async (req, res) => {
   const { username, fullname, email, password } = req.body; //get the details from request
   if (
@@ -206,39 +207,159 @@ const changeDetails = asyncHandler(async (req, res) => {
     req.user?._id,
     { $set: { fullname } },
     { new: true }
-  ).select("-password -refreshToken")
-  return res.status(200).json(new ApiRes(200,user,"name has been changed"))
+  ).select("-password -refreshToken");
+  return res.status(200).json(new ApiRes(200, user, "name has been changed"));
 });
-const updateAvatar=asyncHandler(async(req,res)=>{
-  const avatarLocalPath = req.files?.avatar[0]?.path; 
-  console.log(avatarLocalPath)//getting the avatar if it exists, the req.files is added by the middleware multer
+const updateAvatar = asyncHandler(async (req, res) => {
+  const avatarLocalPath = req.files?.avatar[0]?.path;
+  console.log(avatarLocalPath); //getting the avatar if it exists, the req.files is added by the middleware multer
   if (!avatarLocalPath) throw new ApiError(400, "avatar required");
   const avatar = await uploadOnCloudinary(avatarLocalPath);
-  if(!avatar){
-    throw new ApiError(500,"something went wrong while uploading to cloudinary")
+  if (!avatar) {
+    throw new ApiError(
+      500,
+      "something went wrong while uploading to cloudinary"
+    );
   }
 
-  const user=await User.findByIdAndUpdate(req.user._id,{$set:{avatar:avatar.url}},{new:true}).select("-password -refreshToken")
-  if(!user){
-    throw new ApiError(500,"something went wrong")
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: { avatar: avatar.url } },
+    { new: true }
+  ).select("-password -refreshToken");
+  if (!user) {
+    throw new ApiError(500, "something went wrong");
   }
-  return res.status(200).json(new ApiRes(200,{user},"avatar sucessfully changed"))
-})
-const updateCover=asyncHandler(async(req,res)=>{
-  const coverLocalPath = req.files?.cover[0]?.path; 
-  console.log(coverLocalPath)//getting the avatar if it exists, the req.files is added by the middleware multer
+  return res
+    .status(200)
+    .json(new ApiRes(200, { user }, "avatar sucessfully changed"));
+});
+const updateCover = asyncHandler(async (req, res) => {
+  const coverLocalPath = req.files?.cover[0]?.path;
+  console.log(coverLocalPath); //getting the avatar if it exists, the req.files is added by the middleware multer
   if (!coverLocalPath) throw new ApiError(400, "cover required");
   const coverImage = await uploadOnCloudinary(coverLocalPath);
-  if(!coverImage){
-    throw new ApiError(500,"something went wrong while uploading to cloudinary")
+  if (!coverImage) {
+    throw new ApiError(
+      500,
+      "something went wrong while uploading to cloudinary"
+    );
   }
 
-  const user=await User.findByIdAndUpdate(req.user._id,{$set:{coverImage:coverImage.url}},{new:true}).select("-password -refreshToken")
-  if(!user){
-    throw new ApiError(500,"something went wrong")
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: { coverImage: coverImage.url } },
+    { new: true }
+  ).select("-password -refreshToken");
+  if (!user) {
+    throw new ApiError(500, "something went wrong");
   }
-  return res.status(200).json(new ApiRes(200,{user},"avatar sucessfully changed"))
-})
+  return res
+    .status(200)
+    .json(new ApiRes(200, { user }, "avatar sucessfully changed"));
+});
+const getUserChannel = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+  if (!username?.trim()) {
+    throw new ApiError(400, "username not provided");
+  }
+  const channel = await User.aggregate([
+    {
+      $match: {
+        username: username,
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localFeild: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscribers",
+        as: "subscribedTo",
+      },
+    },
+    {
+      $addFields: {
+        subscribersCount: {
+          $size: "subscribers",
+        },
+        subscribedToCount: {
+          $size: "subscribedToCount",
+        },
+
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        fullname: 1,
+        username: 1,
+        subscribersCount: 1,
+        subscribedToCount: 1,
+        avatar: 1,
+        coverImage: 1,
+        isSubscribed: 1,
+      },
+    },
+  ]);
+  if (!channel?.length) {
+    throw new ApiError(404, "channel doesn't exist");
+  }
+  return res.status(200).json(new ApiRes(200, channel[0], "channel detched"));
+});
+const getWatchHistory = asyncHandler(async (req, res) => {
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user._id),
+      },
+
+    },
+    {
+      $lookup:{
+        from:"videos",
+        foreignField:"_id",
+        localField:"watchHistory",
+        as:"watchHistory",
+        pipeline:[
+          {
+            $lookup:{
+              from: "users",
+              foreignField: "_id",
+              localField: "owner",
+              as: "owner",
+              pipeline:[
+                { 
+                  $project:{
+                    fullname:1,
+                    username:1,
+                    avatar:1
+                  }
+                }
+              ]
+            }
+            
+          },
+          
+        ]
+      }
+    }
+  ]);
+  return res.status(200).json(new ApiRes(200,user[0]?.watchHistory,"watch history fetched"))
+});
 export {
   registerUser,
   loginUser,
@@ -248,5 +369,7 @@ export {
   currentUser,
   changeDetails,
   updateAvatar,
-  updateCover
+  updateCover,
+  getWatchHistory,
+  getUserChannel
 };
