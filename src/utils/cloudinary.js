@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary"
 import fs from "fs"
+import { ApiError } from "./ApiError.js";
  cloudinary.config({
     cloud_name:process.env.CLOUD_NAME,
     api_key:process.env.API_KEY,
@@ -21,4 +22,27 @@ import fs from "fs"
 
     }
  }
- export {uploadOnCloudinary}
+ const deleteOnCloudinary = async (cloudinaryFilePath,type) => {
+    try {
+      const splitedUrl = cloudinaryFilePath.split("/");
+      const id = splitedUrl[splitedUrl.length - 1].split(".")[0];
+      console.log(id)
+      let result
+      try {
+        result = await cloudinary.uploader.destroy(id,{resource_type:type,invalidate:true});
+        
+      } catch (error) {
+        console.log(error)
+      }
+      console.log(result)
+      if (result.result !== 'ok') {
+        throw new Error('Not deleted');
+      }
+      
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Something went wrong while deleting');
+    }
+  };
+ export {uploadOnCloudinary,deleteOnCloudinary}
