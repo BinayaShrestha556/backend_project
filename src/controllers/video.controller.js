@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiRes } from "../utils/ApiRes.js";
 import { Video } from "../models/video.model.js";
 import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
-import ffmpeg from "fluent-ffmpeg";
+
 import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
 
@@ -40,6 +40,15 @@ const getVideoById = asyncHandler(async (req, res) => {
         }
     },
     {
+        $lookup:{
+          from:"likes",
+          localField:"_id",
+          foreignField:"video",
+          as: "likers",
+
+        }
+    },
+    {
         $unwind:{
             path:"$owner"
         }
@@ -47,6 +56,11 @@ const getVideoById = asyncHandler(async (req, res) => {
   
   ])
   if (!video) throw new ApiError(400, "video not found");
+  if(video.length==0) throw new ApiError(400,"video not found")
+  const result=await Video.updateOne({_id:id},{$inc:{views:1}})
+
+  if(result.modifiedCount!==1) throw new ApiError(500,"views not updated")
+  
   return res.status(200).json(new ApiRes(200, video, "sucessfully sent"));
 });
 const uploadVideo = asyncHandler(async (req, res) => {

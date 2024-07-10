@@ -10,6 +10,11 @@ const commentSchema=new mongoose.Schema({
     ref:"Video",
     required: true
   },
+replies:[{type:mongoose.Schema.Types.ObjectId,ref:"Comment"}],
+parent:{
+  type:mongoose.Schema.Types.ObjectId,
+  ref:"Comment"
+},
   owner:{
     type: mongoose.Schema.Types.ObjectId,
     ref:"User",

@@ -348,7 +348,16 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                     username:1,
                     avatar:1
                   }
-                }
+                },{
+                $project:{
+                  thumbnail:1,
+                  _id:1,
+                  title:1,
+                  views:1,
+                  
+
+
+                }}
               ]
             }
             

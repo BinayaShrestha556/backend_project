@@ -19,5 +19,11 @@ app.use("/api/v1/user",userRouter)
 import videoRouter from './routes/video.routes.js'
 app.use("/api/v1/video",videoRouter)
 
+import likesRouter from "./routes/likes.router.js"
+app.use("/api/v1/likes",likesRouter)
+
+import commentsRouter from "./routes/comments.router.js"
+app.use("/api/v1/comments",commentsRouter)
+
 
 export default app;
