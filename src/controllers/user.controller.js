@@ -10,14 +10,14 @@ const registerUser = asyncHandler(async (req, res) => {
   if (
     [fullname, username, email, password].some((field) => field.trim() === "") //validating if the fields are missing
   ) {
-    throw new ApiError(400, "all field are required"); //throws an error through the ApiError class which extends the error class
+    return res.status(400).json( {message: "all field are required"}); //throws an error through the ApiError class which extends the error class
   }
   const userExists = await User.findOne({ $or: [{ username }, { email }] }); //getting the user from the database
-  if (userExists) {
-    throw new ApiError(409, "user already exist"); //throwing error if user already exists
+  if (userExists) {return res.status(409).json( {message:"username already exists"})
+   //throwing error if user already exists
   }
   const avatarLocalPath = req.files?.avatar[0]?.path; //getting the avatar if it exists, the req.files is added by the middleware multer
-  if (!avatarLocalPath) throw new ApiError(400, "avatar required");
+  if (!avatarLocalPath) return res.status(400).json( {message: "avatar required"});
   const avatar = await uploadOnCloudinary(avatarLocalPath);
   let coverImage;
   // console.log(req.files.avatar);
@@ -28,7 +28,7 @@ const registerUser = asyncHandler(async (req, res) => {
   ) {
     coverImage = req.files.coverImage[0].path;
   }
-  if (!avatar) throw new ApiError(400, "avatar required");
+  if (!avatar) return res.status(400).json( {message: "avatar required"});
 
   const user = await User.create({
     //creating the user if everything goes correct
@@ -78,10 +78,10 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
 const loginUser = asyncHandler(async (req, res) => {
   const { email, username, password } = req.body;
   if (!(email || username)) {
-    throw new ApiError(400, "username or email is required");
+    return res.status(400).json( {message: "username or email is required"});
   }
   if (!password) {
-    throw new ApiError(400, "incorrect user credentials");
+    return res.status(400).json( {message: "incorrect user credentials"});
   }
   const user = await User.findOne({ $or: [{ username }, { email }] }); //finds the user object on the basis of username or email
   if (!user) {
@@ -202,7 +202,7 @@ const currentUser = asyncHandler(async (req, res) => {
 });
 const changeDetails = asyncHandler(async (req, res) => {
   const { fullname } = req.body;
-  if (!fullname) throw new ApiError(400, "fields are required");
+  if (!fullname) return res.status(400).json( {message: "fields are required"});
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     { $set: { fullname } },
@@ -213,7 +213,7 @@ const changeDetails = asyncHandler(async (req, res) => {
 const updateAvatar = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.files?.avatar[0]?.path;
   console.log(avatarLocalPath); //getting the avatar if it exists, the req.files is added by the middleware multer
-  if (!avatarLocalPath) throw new ApiError(400, "avatar required");
+  if (!avatarLocalPath) return res.status(400).json( {message: "avatar required"});
   const avatar = await uploadOnCloudinary(avatarLocalPath);
   if (!avatar) {
     throw new ApiError(
@@ -237,7 +237,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
 const updateCover = asyncHandler(async (req, res) => {
   const coverLocalPath = req.files?.cover[0]?.path;
   console.log(coverLocalPath); //getting the avatar if it exists, the req.files is added by the middleware multer
-  if (!coverLocalPath) throw new ApiError(400, "cover required");
+  if (!coverLocalPath) return res.status(400).json( {message: "cover required"});
   const coverImage = await uploadOnCloudinary(coverLocalPath);
   if (!coverImage) {
     throw new ApiError(
@@ -261,7 +261,7 @@ const updateCover = asyncHandler(async (req, res) => {
 const getUserChannel = asyncHandler(async (req, res) => {
   const { username } = req.params;
   if (!username?.trim()) {
-    throw new ApiError(400, "username not provided");
+    return res.status(400).json( {message: "username not provided"});
   }
   const channel = await User.aggregate([
     {

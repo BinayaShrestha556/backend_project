@@ -7,8 +7,14 @@ export const verifyJWT=asyncHandler(async (req, res, next)=>{
     if(!token){
         throw new ApiError(401,"Unauthorized request")
     }
-    const decodedToken=jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)//verifying the token (actually its decrypting the encrypted data that we send (ie, _id,email,username, etc))
-    const user=await User.findById(decodedToken?._id).select("-password -refreshToken")//gets the user by id that was decrypted using jwt
+    const decodedToken=jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,(err,user)=>{
+        return res.status(403).json({message:"access token expired"})
+    })
+    if(!decodedToken) throw new ApiError(405,"token expired")//verifying the token (actually its decrypting the encrypted data that we send (ie, _id,email,username, etc))
+    console.log(decodedToken)
+    const user=await User.findById(decodedToken?._id).select("-password -refreshToken")
+    //gets the user by id that was decrypted using jwt
+    console.log(req.cookies.accessToken,user)
     if(!user){
         throw new ApiError(401,"Invalid Access Token")
     }
