@@ -131,6 +131,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiRes(200, {}, "user had been logged out successfully"));
 });
 const refreshAccessToken = asyncHandler(async (req, res) => {
+ 
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
 
@@ -174,6 +175,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       httpOnly: true,
       secure: true,
     };
+    
 
     return res
       .status(200)
@@ -212,7 +214,7 @@ const changeDetails = asyncHandler(async (req, res) => {
 });
 const updateAvatar = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.files?.avatar[0]?.path;
-  console.log(avatarLocalPath); //getting the avatar if it exists, the req.files is added by the middleware multer
+ //getting the avatar if it exists, the req.files is added by the middleware multer
   if (!avatarLocalPath) return res.status(400).json( {message: "avatar required"});
   const avatar = await uploadOnCloudinary(avatarLocalPath);
   if (!avatar) {
@@ -236,7 +238,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
 });
 const updateCover = asyncHandler(async (req, res) => {
   const coverLocalPath = req.files?.cover[0]?.path;
-  console.log(coverLocalPath); //getting the avatar if it exists, the req.files is added by the middleware multer
+  //getting the avatar if it exists, the req.files is added by the middleware multer
   if (!coverLocalPath) return res.status(400).json( {message: "cover required"});
   const coverImage = await uploadOnCloudinary(coverLocalPath);
   if (!coverImage) {

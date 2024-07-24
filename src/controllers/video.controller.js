@@ -106,5 +106,48 @@ const deleteVideo=asyncHandler(async(req,res)=>{
   await Video.deleteOne({_id:videoId})
   return res.status(200).json(new ApiRes(200,{},"success"))
 })
+const getAllVideos=asyncHandler(async(req,res)=>{
+  const videos=await Video.aggregate([
+    {
+      $match:{}
+    },
+    {
+      $lookup:{
+          from:"users",
+          localField:"owner",
+          foreignField:"_id",
+          as:"owner",
+          pipeline:[
+              {
+                  $project:{
+                      username:1,
+                      avatar:1,
+                      fullname:1,
+                      coverImage:1
+                  }
+              }
+          ]
+      }
+  },
+  {
+      $lookup:{
+        from:"likes",
+        localField:"_id",
+        foreignField:"video",
+        as: "likers",
 
-export { getVideoById,uploadVideo, getVideoByUsername,deleteVideo };
+      }
+  },
+  {
+      $unwind:{
+          path:"$owner"
+      }
+  }
+  ])
+  if(videos.length==0||!videos){
+    throw new ApiError(500,"sorry videos not found")
+  }
+  return res.status(200).json(new ApiRes(200,videos))
+})
+
+export { getVideoById,uploadVideo, getVideoByUsername,deleteVideo,getAllVideos };
