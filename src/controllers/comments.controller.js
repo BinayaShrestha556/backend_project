@@ -14,17 +14,22 @@ const addComment = asyncHandler(async (req, res) => {
   const videoCheck = await Video.findById(video);
   if (!videoCheck) throw new ApiError(400, "video not found");
 
-  const comment = await Comment.create({ owner, content, video,parent });
   if(parent){
+    const comment = await Comment.create({ owner, content, video,parent });
+    if (!comment) throw new ApiError(500, "error while creating data");
     await Comment.updateOne({_id:parent},{$push:{replies:comment._id}})
   }
+  else{
+    const comment = await Comment.create({ owner, content, video });
+    if (!comment) throw new ApiError(500, "error while creating data");
+    
+  }
   
-  if (!comment) throw new ApiError(500, "error while creating data");
-  return res.status(200).json({ message: "ok" });
+  return res.status(200).json(new ApiRes(200,{},"created"));
 });
 
 const getComments = asyncHandler(async (req, res) => {
-  const videoId = req.params.video;
+  const videoId = req.params.videoId;
   if (!videoId) throw new ApiError(400, "video id required");
   const comments = await Comment.aggregate([
     {
@@ -81,6 +86,10 @@ const getComments = asyncHandler(async (req, res) => {
                 createdAt:1
                 
             }
+          },{
+            $unwind:{
+              path:"$owner"
+            }
           }
         ],
       },
@@ -126,6 +135,11 @@ const getComments = asyncHandler(async (req, res) => {
             replies:1,
             createdAt:1
             
+        }
+      },
+      {
+        $unwind:{
+          path:"$owner"
         }
       }
 

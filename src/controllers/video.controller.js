@@ -8,53 +8,106 @@ import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
 
 const getVideoById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id=req.params.id
+  
   if (!id?.trim()) {
     throw new ApiError(400, "no id parameters");
   }
   if(!mongoose.Types.ObjectId.isValid(id)){
     throw new ApiError(400, "not valid id")
   }
-  const video = await Video.aggregate([
-    {
-        $match:{
-            _id:new mongoose.Types.ObjectId(id)
-        }
-    },
-    {
-        $lookup:{
-            from:"users",
-            localField:"owner",
-            foreignField:"_id",
-            as:"owner",
-            pipeline:[
-                {
-                    $project:{
-                        username:1,
-                        avatar:1,
-                        fullname:1,
-                        coverImage:1
-                    }
-                }
-            ]
-        }
-    },
-    {
-        $lookup:{
-          from:"likes",
-          localField:"_id",
-          foreignField:"video",
-          as: "likers",
+  // const video = await Video.aggregate([
+  //   {
+  //       $match:{
+  //           _id:new mongoose.Types.ObjectId(id)
+  //       }
+  //   },
+  //   {
+  //       $lookup:{
+  //           from:"users",
+  //           localField:"owner",
+  //           foreignField:"_id",
+  //           as:"owner",
+  //           pipeline:[
+  //             {
+  //               $lookup: {
+  //                 from: "subscriptions",
+  //                 localField: "_id",
+  //                 foreignField: "channel",
+  //                 as: "subscribers",
+  //               },
+  //             },
+  //             {
+  //               $lookup: {
+  //                 from: "subscriptions",
+  //                 localField: "_id",
+  //                 foreignField: "subscribers",
+  //                 as: "subscribedTo",
+  //               },
+  //             },
+  //             {
+  //               $addFields: {
+  //                 subscribersCount: {
+  //                   $size: "$subscribers",
+  //                 },
+  //                 subscribedToCount: {
+  //                   $size: "$subscribedTo",
+  //                 },
+          
+  //                 isSubscribed: {
+  //                   $cond: {
+  //                     if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+  //                     then: true,
+  //                     else: false,
+  //                   },
+  //                 },
+  //               },
+  //             },
+  //               {
+  //                   $project:{
+  //                       username:1,
+  //                       avatar:1,
+  //                       fullname:1,
+  //                       coverImage:1,
+  //                       subscribersCount:1,
+  //                       subscribedToCount:1,
+  //                       isSubscribed:1
+  //                   }
+  //               }
+  //           ]
+  //       }
+  //   },
+  //   {
+  //       $lookup:{
+  //         from:"likes",
+  //         localField:"_id",
+  //         foreignField:"video",
+  //         as: "likers",
 
-        }
-    },
-    {
-        $unwind:{
-            path:"$owner"
-        }
-    }
+  //       }
+  //   },
+  //   {
+  //     $addFields: {
+  //       likesNumber: {
+  //         $size: "$likers",
+  //       },
+      
+  //     },
+  //   },
+  //   {
+  //     $project: {
+  //       likers:0
+
+  //     },
+  //   },
+  //   {
+  //       $unwind:{
+  //           path:"$owner"
+  //       }
+  //   }
   
-  ])
+  // ])
+  const video = await Video.findById(id)
   if (!video) throw new ApiError(400, "video not found");
   if(video.length==0) throw new ApiError(400,"video not found")
   const result=await Video.updateOne({_id:id},{$inc:{views:1}})
@@ -149,5 +202,110 @@ const getAllVideos=asyncHandler(async(req,res)=>{
   }
   return res.status(200).json(new ApiRes(200,videos))
 })
+const getOtherInfo=asyncHandler(async(req,res)=>{
+  const id=req.body.videoId
+  if (!id?.trim()) {
+    throw new ApiError(400, "no id parameters");
+  }
+  if(!mongoose.Types.ObjectId.isValid(id)){
+    throw new ApiError(400, "not valid id")
+  }
+  const video = await Video.aggregate([
+    {
+        $match:{
+            _id:new mongoose.Types.ObjectId(id)
+        }
+    },
+    {
+        $lookup:{
+            from:"users",
+            localField:"owner",
+            foreignField:"_id",
+            as:"owner",
+            pipeline:[
+              {
+                $lookup: {
+                  from: "subscriptions",
+                  localField: "_id",
+                  foreignField: "channel",
+                  as: "subscribers",
+                },
+              },
+              {
+                $lookup: {
+                  from: "subscriptions",
+                  localField: "_id",
+                  foreignField: "subscribers",
+                  as: "subscribedTo",
+                },
+              },
+              {
+                $addFields: {
+                  subscribersCount: {
+                    $size: "$subscribers",
+                  },
+                  subscribedToCount: {
+                    $size: "$subscribedTo",
+                  },
+          
+                  isSubscribed: {
+                    $cond: {
+                      if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+                      then: true,
+                      else: false,
+                    },
+                  },
+                },
+              },
+                {
+                    $project:{
+                        username:1,
+                        avatar:1,
+                        fullname:1,
+                        coverImage:1,
+                        subscribersCount:1,
+                        subscribedToCount:1,
+                        isSubscribed:1
+                    }
+                }
+            ]
+        }
+    },
+    {
+        $lookup:{
+          from:"likes",
+          localField:"_id",
+          foreignField:"video",
+          as: "likers",
 
-export { getVideoById,uploadVideo, getVideoByUsername,deleteVideo,getAllVideos };
+        }
+    },
+    {
+      $addFields: {
+        likesNumber: {
+          $size: "$likers",
+        },
+      
+      },
+    },
+    {
+      $project: {
+        likesNumber:1,
+        owner:1
+
+      },
+    },
+    {
+        $unwind:{
+            path:"$owner"
+        }
+    }
+  
+  ])
+  if (!video) throw new ApiError(400, "video not found");
+  if(video.length==0) throw new ApiError(400,"video not found")
+  return res.status(200).json(new ApiRes(200, video, "sucessfully sent"));
+
+})
+
+export { getVideoById,uploadVideo, getVideoByUsername,deleteVideo,getAllVideos,getOtherInfo };

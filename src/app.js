@@ -25,5 +25,10 @@ app.use("/api/v1/likes",likesRouter)
 import commentsRouter from "./routes/comments.router.js"
 app.use("/api/v1/comments",commentsRouter)
 
+import subscribeRouter from "./routes/subscription.router.js"
+app.use("/api/v1/subscribe",subscribeRouter)
+
+import errorHandler from "./middlewares/errorHandler.js";
+app.use(errorHandler)
 
 export default app;

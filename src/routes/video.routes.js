@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { optionalVerification, verifyJWT } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
-import { deleteVideo, getAllVideos, getVideoById, getVideoByUsername, uploadVideo } from "../controllers/video.controller.js";
+import { deleteVideo, getAllVideos, getOtherInfo, getVideoById, getVideoByUsername, uploadVideo } from "../controllers/video.controller.js";
 
 
 const router=Router()
@@ -15,7 +15,8 @@ router.route("/upload").post(verifyJWT,upload.fields([
         name:"video",
         maxCount:1
     }]),uploadVideo)
-router.route("/uname/:username").get(getVideoByUsername)
+router.route("/uname/:id").get(getVideoByUsername)
 router.route("/delete").delete(verifyJWT,deleteVideo)
+router.route("/get-other-info-on-video").post(optionalVerification,getOtherInfo)
 router.route("/all-videos").get(getAllVideos)
 export default router

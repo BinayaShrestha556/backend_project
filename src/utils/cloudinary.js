@@ -22,6 +22,27 @@ import { ApiError } from "./ApiError.js";
 
     }
  }
+ const deleteV=async()=>{
+  cloudinary.config({
+    cloud_name: 'dtnzu6ts5',
+    api_key: '266457623286177',
+    api_secret: 'q509zMyf4BcRGbeRfswIlzkftzU'
+  });
+  
+  // Function to invalidate a cached file
+  const invalidateCache = async (publicId) => {
+    try {
+      const result = await cloudinary.uploader.destroy(publicId, { invalidate: true });
+      console.log('Cache invalidation result:', result);
+    } catch (error) {
+      console.error('Error invalidating cache:', error);
+    }
+  };
+  
+  // Call the function with the public ID of the file you want to invalidate
+  await invalidateCache('ovudh8kwaoibsptmrfa5');
+
+ }
  const deleteOnCloudinary = async (cloudinaryFilePath,type) => {
     try {
       const splitedUrl = cloudinaryFilePath.split("/");
@@ -45,4 +66,4 @@ import { ApiError } from "./ApiError.js";
       throw new Error('Something went wrong while deleting');
     }
   };
- export {uploadOnCloudinary,deleteOnCloudinary}
+ export {uploadOnCloudinary,deleteOnCloudinary,deleteV}
