@@ -4,4 +4,5 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router=Router()
 router.post("/subscribeTo",verifyJWT,subscribeTo)
+
 export default router

@@ -13,7 +13,7 @@ import {
   updateCover,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { optionalVerification, verifyJWT } from "../middlewares/auth.middleware.js";
 const router = Router();
 router.route("/register").post(
   upload.fields([
@@ -47,6 +47,6 @@ router.route("/change-cover").patch(verifyJWT,upload.fields([
     maxCount:1
   }
 ]),updateCover)
-router.route("/channel/:username").get(verifyJWT,getUserChannel)
+router.route("/channel/:username").get(optionalVerification,getUserChannel)
 router.route("/history").get(verifyJWT,getWatchHistory)
 export default router;
