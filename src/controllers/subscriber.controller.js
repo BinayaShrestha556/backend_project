@@ -15,7 +15,7 @@ const subscribeTo=asyncHandler(async(req,res,next)=>{
         await Subscription.findByIdAndDelete(exists._id)
         return res.status(200).json(new ApiRes(200,{},"unsubscribed"))
     }
-    console.log(exists)
+   
    
     const subscription=await Subscription.create({subscriber:_id,channel})
     if(!subscription){

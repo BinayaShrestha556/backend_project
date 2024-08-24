@@ -149,7 +149,7 @@ const deleteVideo=asyncHandler(async(req,res)=>{
   const video=await Video.findById(videoId)
   if(!video) throw new ApiError(400,"not valid id")
   const cloudinaryVideoUrl=video.videoFile
-  console.log(cloudinaryVideoUrl)
+  
   const cloudinaryThumbnailUrl=video.thumbnail
   const result1=await deleteOnCloudinary(cloudinaryVideoUrl,"video")
   if(result1.result!="ok") throw new Error("not deleted")

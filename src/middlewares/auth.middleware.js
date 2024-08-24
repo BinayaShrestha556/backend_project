@@ -25,15 +25,15 @@ export const optionalVerification =  asyncHandler(async(req,res,next)=>
     const token=req.cookies?.accessToken||req.header("Authorization")?.replace("Bearer ","")//gets the cookies from the req, if not available (in case of mobile browsers) the cookies is provided in req.header
     if(!token){
         req.user=null
-        console.log("no token")
-        return next()
+        
+        return next(new error)
     }
     const decodedToken=jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
     if(!decodedToken) {
         req.user=null
         return next()
     }
-    console.log(decodedToken)
+    // console.log(decodedToken)
         //verifying the token (actually its decrypting the encrypted data that we send (ie, _id,email,username, etc))
     // console.log(decodedToken)
     const user=await User.findById(decodedToken?._id).select("-password -refreshToken")
