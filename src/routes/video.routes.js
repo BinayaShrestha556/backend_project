@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { optionalVerification, verifyJWT } from "../middlewares/auth.middleware.js";
-import { upload } from "../middlewares/multer.middleware.js";
+import upload from "../middlewares/multer.middleware.js";
 import { deleteVideo, getAllVideos, getOtherInfo, getVideoById, getVideoByUsername, uploadVideo } from "../controllers/video.controller.js";
 
 
