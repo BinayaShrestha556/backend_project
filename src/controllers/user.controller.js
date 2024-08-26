@@ -6,58 +6,58 @@ import { ApiRes } from "../utils/ApiRes.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 const registerUser = asyncHandler(async (req, res) => {
-  // console.log("request recieved")
+  console.log("request recieved")
 
-  //   const { username, fullname, email, password } = req.body; //get the details from request
-  //   if (
-  //     [fullname, username, email, password].some((field) => field.trim() === "") //validating if the fields are missing
-  //   ) {
-  //     return res.status(400).json( {message: "all field are required"}); //throws an error through the ApiError class which extends the error class
-  //   }
-  //   const userExists = await User.findOne({ $or: [{ username }, { email }] }); //getting the user from the database
-  //   if (userExists) {return res.status(409).json( {message:"username already exists"})
-  //    //throwing error if user already exists
-  //   }
+    const { username, fullname, email, password } = req.body; //get the details from request
+    if (
+      [fullname, username, email, password].some((field) => field.trim() === "") //validating if the fields are missing
+    ) {
+      return res.status(400).json( {message: "all field are required"}); //throws an error through the ApiError class which extends the error class
+    }
+    const userExists = await User.findOne({ $or: [{ username }, { email }] }); //getting the user from the database
+    if (userExists) {return res.status(409).json( {message:"username already exists"})
+     //throwing error if user already exists
+    }
 
-  //   if(!req.files)
-  //     console.log("no files recieved")
-  //   // console.log(req.files)
-  //   const avatarLocalPath = req.files.avatar[0]?.path; //getting the avatar if it exists, the req.files is added by the middleware multer
-  //   if (!avatarLocalPath) return res.status(400).json( {message: "avatar required"});
-  //   const avatar = await uploadOnCloudinary(avatarLocalPath);
-  //   if (!avatar) return res.status(500).json( {message: "failed to upload"});
-  //   let coverImageLocal;
-  //   let coverImage
-  //   // console.log(req.files.avatar);
-  //   if (
-  //     req.files &&
-  //     Array.isArray(req.files.coverImage) &&
-  //     req.files.coverImage > 0
-  //   ) {
-  //     coverImageLocal = req.files.coverImage[0].path;
-  //     coverImage=await uploadOnCloudinary(coverImageLocal)
-  //   }
+    if(!req.files)
+      console.log("no files recieved")
+    // console.log(req.files)
+    const avatarLocalPath = req.files.avatar[0]?.path; //getting the avatar if it exists, the req.files is added by the middleware multer
+    if (!avatarLocalPath) return res.status(400).json( {message: "avatar required"});
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+    if (!avatar) return res.status(500).json( {message: "failed to upload"});
+    let coverImageLocal;
+    let coverImage
+    // console.log(req.files.avatar);
+    if (
+      req.files &&
+      Array.isArray(req.files.coverImage) &&
+      req.files.coverImage > 0
+    ) {
+      coverImageLocal = req.files.coverImage[0].path;
+      coverImage=await uploadOnCloudinary(coverImageLocal)
+    }
   
-  //   const user = await User.create({
-  //     //creating the user if everything goes correct
-  //     fullname,
-  //     avatar: avatar.url,
-  //     coverImage: coverImage?.url || "",
-  //     email,
-  //     password,
-  //     username,
-  //   });
-  //   if(!user) throw new ApiError(500,"user not created")
-  //   const createdUser = await User.findById(user._id).select(
-  //     "-password -refreshToken " //get the user object without the mentioned field
-  //   );
-  // console.log(createdUser)
-  //   if (!createdUser)
-  //     throw new ApiError(500, "something went wrong while storing the values");
-  //   return res
-  //     .status(201)
-  //     .json(new ApiRes(200, createdUser, "user registered successfully"));
-  return res.status(200).json(new ApiRes(200,{},"success ful"))
+    const user = await User.create({
+      //creating the user if everything goes correct
+      fullname,
+      avatar: avatar.url,
+      coverImage: coverImage?.url || "",
+      email,
+      password,
+      username,
+    });
+    if(!user) throw new ApiError(500,"user not created")
+    const createdUser = await User.findById(user._id).select(
+      "-password -refreshToken " //get the user object without the mentioned field
+    );
+  console.log(createdUser)
+    if (!createdUser)
+      throw new ApiError(500, "something went wrong while storing the values");
+    return res
+      .status(201)
+      .json(new ApiRes(200, createdUser, "user registered successfully"));
+  // return res.status(200).json(new ApiRes(200,{},"success ful"))
 
 }); //sending the response if the user is successfully created
 
