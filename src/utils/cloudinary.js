@@ -23,6 +23,23 @@ import streamifier from 'streamifier';
     streamifier.createReadStream(fileBuffer).pipe(stream);
   });
 };
+const signature=async()=>{
+  const timestamp = Math.round(new Date().getTime() / 1000); // Current time in seconds
+
+  try {
+    const signature = cloudinary.utils.api_sign_request(
+      {
+        timestamp,
+        upload_preset:"ml_default"
+        // Replace with your preset name
+      },
+      process.env.API_SECRET
+    );
+    return {timestamp,signature}
+  } catch (error) {
+    console.log(error)
+  }
+}
 
  const deleteOnCloudinary = async (cloudinaryFilePath,type) => {
     try {
@@ -47,4 +64,4 @@ import streamifier from 'streamifier';
       throw new Error('Something went wrong while deleting');
     }
   };
- export {uploadOnCloudinary,deleteOnCloudinary}
+ export {uploadOnCloudinary,deleteOnCloudinary,signature}

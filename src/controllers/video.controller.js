@@ -2,7 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiRes } from "../utils/ApiRes.js";
 import { Video } from "../models/video.model.js";
-import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteOnCloudinary, signature, uploadOnCloudinary } from "../utils/cloudinary.js";
 
 import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
@@ -119,20 +119,27 @@ const getVideoById = asyncHandler(async (req, res) => {
 const uploadVideo = asyncHandler(async (req, res) => {
   const owner = req.user._id;
 
-  const localUrlToVideo = req.files?.video[0]?.path;
-  if (!localUrlToVideo) throw new ApiError(400, "video not found");
-    const duration=10
-  const videoFile = await uploadOnCloudinary(localUrlToVideo);
-  const localUrlToThumbNail = req.files?.thumbnail[0]?.path;
-  if (!localUrlToThumbNail) throw new ApiError(400, "thumbnail not found");
-  const thumbnail = await uploadOnCloudinary(localUrlToThumbNail);
-  const { description, title } = req.body;
+ 
+ 
+  const thumbnailLocalPath = req.files.thumbnail?req.files.thumbnail[0]:null; //getting the avatar if it exists, the req.files is added by the middleware multer
+  if (!thumbnailLocalPath) return res.status(400).json( {message: "thumbnail required"});
+  const thumbnail = await uploadOnCloudinary(thumbnailLocalPath.buffer,"thumbnails");
+  // console.log(thumbnail)
+  const { description, title,videoUrl,duration } = req.body;
+  // console.log(req.body)
   if (!description) throw new ApiError(400, "description is required");
   if (!title) throw new ApiError(400, "title is required");
-  const video=await Video.create({
-    videoFile:videoFile.url,thumbnail:thumbnail.url,title,description,duration,owner,
-  })
-  return res.status(200).json(new ApiRes(200,video,"video sucessfully created"))
+try {
+    const video=await Video.create({
+      videoFile:videoUrl,thumbnail:thumbnail.url,title,description,duration,owner,
+    })
+    return res.status(200).json(new ApiRes(200,video,"video sucessfully created"))
+    
+} catch (error) {
+ console.log(error) 
+ return res.status(500).json(new ApiRes(500,{},"video not sucessfully created"))
+
+}
 });
 const getVideoByUsername=asyncHandler(async(req,res)=>{
     const {username}=req.params
@@ -307,5 +314,16 @@ const getOtherInfo=asyncHandler(async(req,res)=>{
   return res.status(200).json(new ApiRes(200, video, "sucessfully sent"));
 
 })
+const getSignature=asyncHandler(async(req,res)=>{
 
-export { getVideoById,uploadVideo, getVideoByUsername,deleteVideo,getAllVideos,getOtherInfo };
+  try {
+    const cloudinary=await signature()
+    return res.status(200).json(new ApiRes(200,cloudinary,"sent"))
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json(new ApiRes(500,{},"something wrong"))
+  }
+  
+})
+
+export { getVideoById,uploadVideo, getVideoByUsername,deleteVideo,getAllVideos,getOtherInfo ,getSignature};
