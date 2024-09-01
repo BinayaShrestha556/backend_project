@@ -12,7 +12,7 @@ router.route("/upload").post(verifyJWT,upload.fields([
         maxCount:1
     }]),uploadVideo)
 router.route("/uname/:username").get(getVideoByUsername)
-router.route("/delete").delete(verifyJWT,deleteVideo)
+router.route("/delete").post(verifyJWT,deleteVideo)
 router.route("/get-other-info-on-video").post(optionalVerification,getOtherInfo)
 router.route("/all-videos").get(getAllVideos)
 router.route("/signature").get(verifyJWT,getSignature)

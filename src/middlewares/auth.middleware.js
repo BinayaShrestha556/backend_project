@@ -26,7 +26,7 @@ export const optionalVerification =  asyncHandler(async(req,res,next)=>
     if(!token){
         req.user=null
         
-        return next(new error)
+      return next()
     }
     const decodedToken=jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
     if(!decodedToken) {
