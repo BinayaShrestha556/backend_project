@@ -28,7 +28,9 @@ export const optionalVerification =  asyncHandler(async(req,res,next)=>
         
       return next()
     }
-    const decodedToken=jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+    try {
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+  
     if(!decodedToken) {
         req.user=null
         return next()
@@ -45,4 +47,8 @@ export const optionalVerification =  asyncHandler(async(req,res,next)=>
     }
     req.user=user//adds the user property in req
     next()
+} catch (error) {
+    req.user=null
+    return next()
+}
 })

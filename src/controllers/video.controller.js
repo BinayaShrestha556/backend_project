@@ -5,7 +5,7 @@ import { Video } from "../models/video.model.js";
 import {
   deleteOnCloudinary,
   signature,
-  uploadOnCloudinary,
+
 } from "../utils/cloudinary.js";
 
 import mongoose from "mongoose";
