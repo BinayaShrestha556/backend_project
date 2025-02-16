@@ -13,7 +13,7 @@ router.route("/upload").post(verifyJWT,upload.fields([
     }]),uploadVideo)
 router.route("/uname/:username").get(getVideoByUsername)
 router.route("/delete").post(verifyJWT,deleteVideo)
-router.route("/get-other-info-on-video").post(optionalVerification,getOtherInfo)
+router.route("/get-other-info-on-video").get(optionalVerification,getOtherInfo)
 router.route("/all-videos").get(getAllVideos)
 router.route("/signature").get(verifyJWT,getSignature)
 export default router

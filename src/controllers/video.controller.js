@@ -20,97 +20,7 @@ const getVideoById = asyncHandler(async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new ApiError(400, "not valid id");
   }
-  // const video = await Video.aggregate([
-  //   {
-  //       $match:{
-  //           _id:new mongoose.Types.ObjectId(id)
-  //       }
-  //   },
-  //   {
-  //       $lookup:{
-  //           from:"users",
-  //           localField:"owner",
-  //           foreignField:"_id",
-  //           as:"owner",
-  //           pipeline:[
-  //             {
-  //               $lookup: {
-  //                 from: "subscriptions",
-  //                 localField: "_id",
-  //                 foreignField: "channel",
-  //                 as: "subscribers",
-  //               },
-  //             },
-  //             {
-  //               $lookup: {
-  //                 from: "subscriptions",
-  //                 localField: "_id",
-  //                 foreignField: "subscribers",
-  //                 as: "subscribedTo",
-  //               },
-  //             },
-  //             {
-  //               $addFields: {
-  //                 subscribersCount: {
-  //                   $size: "$subscribers",
-  //                 },
-  //                 subscribedToCount: {
-  //                   $size: "$subscribedTo",
-  //                 },
 
-  //                 isSubscribed: {
-  //                   $cond: {
-  //                     if: { $in: [req.user?._id, "$subscribers.subscriber"] },
-  //                     then: true,
-  //                     else: false,
-  //                   },
-  //                 },
-  //               },
-  //             },
-  //               {
-  //                   $project:{
-  //                       username:1,
-  //                       avatar:1,
-  //                       fullname:1,
-  //                       coverImage:1,
-  //                       subscribersCount:1,
-  //                       subscribedToCount:1,
-  //                       isSubscribed:1
-  //                   }
-  //               }
-  //           ]
-  //       }
-  //   },
-  //   {
-  //       $lookup:{
-  //         from:"likes",
-  //         localField:"_id",
-  //         foreignField:"video",
-  //         as: "likers",
-
-  //       }
-  //   },
-  //   {
-  //     $addFields: {
-  //       likesNumber: {
-  //         $size: "$likers",
-  //       },
-
-  //     },
-  //   },
-  //   {
-  //     $project: {
-  //       likers:0
-
-  //     },
-  //   },
-  //   {
-  //       $unwind:{
-  //           path:"$owner"
-  //       }
-  //   }
-
-  // ])
   const video = await Video.findById(id);
   if (!video) throw new ApiError(400, "video not found");
   if (video.length == 0) throw new ApiError(400, "video not found");
@@ -123,16 +33,6 @@ const getVideoById = asyncHandler(async (req, res) => {
 const uploadVideo = asyncHandler(async (req, res) => {
   const owner = req.user._id;
 
-  // const thumbnailLocalPath = req.files.thumbnail
-  //   ? req.files.thumbnail[0]
-  //   : null; //getting the avatar if it exists, the req.files is added by the middleware multer
-  // if (!thumbnailLocalPath)
-  //   return res.status(400).json({ message: "thumbnail required" });
-  // const thumbnail = await uploadOnCloudinary(
-  //   thumbnailLocalPath.buffer,
-  //   "thumbnails"
-  // );
-  // console.log(thumbnail)
   const { description, title,thumbnail, videoUrl, duration } = req.body;
   // console.log(req.body)
   if (!description) throw new ApiError(400, "description is required");
